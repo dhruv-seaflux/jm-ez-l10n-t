@@ -32,14 +32,23 @@ l10n.addTranslationsFile = function (locale, file) {
 }
 
 l10n.t = l10n.translate = function (key, obj) {
-    var locale = this.locale ? this.locale : l10n.locale;
-    var translation = l10n.translations[locale][key];
-    if (translation) {
+    var locale = (obj && obj.locale) ? obj.locale : (this.locale ? this.locale : l10n.locale);
+
+    // Ensure translations exist for that locale
+    var translations = l10n.translations[locale] || {};
+    var translation = translations[key];
+
+    // Replace {{key}} placeholders if the translation exists
+    if (translation && obj) {
         _.forEach(obj, function (value, key) {
-            translation = translation.replace(new RegExp('{{'+key+'}}', 'g'), value);
+            // Skip locale placeholder substitution
+            if (key === 'locale') return;
+            translation = translation.replace(new RegExp('{{' + key + '}}', 'g'), value);
         });
     }
-    return translation ? translation : new Error("Translation not found for " + key);
+
+    // Return translation or an Error
+    return translation ? translation : new Error("Translation not found for " + key + " in locale " + locale);
 }
 
 var getTranslationsFromFile = function (file) {
@@ -55,14 +64,14 @@ var getTranslationsFromFile = function (file) {
     }
 }
 
-l10n.enableL10N = function(anyObject, locale){
+l10n.enableL10N = function (anyObject, locale) {
     anyObject.t = l10n.t;
     anyObject.locale = locale;
 }
 
-l10n.enableL10NExpress = function(request, response, next){
+l10n.enableL10NExpress = function (request, response, next) {
     var locale = l10n.locale;
-    if(request.headers['x-l10n-locale']){
+    if (request.headers['x-l10n-locale']) {
         locale = request.headers['x-l10n-locale'];
     }
     l10n.enableL10N(request, locale);
