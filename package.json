@@ -1,6 +1,6 @@
 {
   "name": "jm-ez-l10n",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Easy Localization for NodeJS",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
