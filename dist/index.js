@@ -15,13 +15,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.l10n = void 0;
 const fs = __importStar(require("fs"));
@@ -49,14 +59,22 @@ exports.l10n = {
         exports.l10n.addTranslations(locale, translations);
     },
     t: function (key, obj) {
-        const locale = exports.l10n.locale;
-        let translation = exports.l10n.translations[locale][key];
-        if (translation) {
-            _.forEach(obj, (value, key) => {
-                translation = translation.replace(new RegExp("{{" + key + "}}", "g"), value);
+        var _a, _b;
+        // Determine locale: obj.locale > this.locale > l10n.locale
+        const locale = (_a = obj === null || obj === void 0 ? void 0 : obj.locale) !== null && _a !== void 0 ? _a : ((_b = this.locale) !== null && _b !== void 0 ? _b : exports.l10n.locale);
+        // Get translation for the locale
+        const translations = exports.l10n.translations[locale] || {};
+        let translation = translations[key];
+        // Replace placeholders if translation exists
+        if (translation && obj) {
+            _.forEach(obj, (value, k) => {
+                if (k === 'locale')
+                    return; // Skip locale placeholder
+                translation = translation.replace(new RegExp(`{{${k}}}`, 'g'), value);
             });
         }
-        return translation !== null && translation !== void 0 ? translation : new Error("Translation not found for " + key);
+        // Return translation or error
+        return translation !== null && translation !== void 0 ? translation : new Error(`Translation not found for ${key} in locale ${locale}`);
     },
     getTranslationsFromFile: function (file) {
         let translations = {};
