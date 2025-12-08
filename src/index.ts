@@ -37,19 +37,26 @@ export const l10n: any = {
     l10n.addTranslations(locale, translations);
   },
 
-  t: function (key: string, obj?: { [key: string]: string }) {
-    const locale = l10n.locale;
-    let translation = l10n.translations[locale][key];
-    if (translation) {
-      _.forEach(obj, (value, key) => {
-        translation = translation.replace(
-          new RegExp("{{" + key + "}}", "g"),
-          value
-        );
+  t: function (key: string, obj?: { [key: string]: string; locale?: string }) {
+    // Determine locale: obj.locale > this.locale > l10n.locale
+    const locale = obj?.locale ?? (this.locale ?? l10n.locale);
+
+    // Get translation for the locale
+    const translations = l10n.translations[locale] || {};
+    let translation = translations[key];
+
+    // Replace placeholders if translation exists
+    if (translation && obj) {
+      _.forEach(obj, (value, k) => {
+        if (k === 'locale') return; // Skip locale placeholder
+        translation = translation.replace(new RegExp(`{{${k}}}`, 'g'), value);
       });
     }
-    return translation ?? new Error("Translation not found for " + key);
+
+    // Return translation or error
+    return translation ?? new Error(`Translation not found for ${key} in locale ${locale}`);
   },
+
 
   getTranslationsFromFile: function (file: string): { [key: string]: string } {
     let translations: { [key: string]: string } = {};
